@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "SIPD Watcher",
+  "version": "1.0",
+  "description": "Memantau dan meningkatkan fungsionalitas SIPD.",  
+  "permissions": [
+    "webRequest",
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://service.sipd.kemendagri.go.id/*",
+    "https://sipd.kemendagri.go.id/*",
+    "https://erevenue.surabaya.go.id/*",
+    "http://prototype.test/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://sipd.kemendagri.go.id/*",
+        "https://erevenue.surabaya.go.id/*",
+        "http://prototype.test/*"
+      ],
+      "js": [
+        "content-script.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "injected-script.js"
+      ],
+      "matches": [
+        "https://sipd.kemendagri.go.id/*",
+        "https://erevenue.surabaya.go.id/*",
+        "http://prototype.test/*"
+      ]
+    }
+  ]
+}
