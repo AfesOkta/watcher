@@ -143,4 +143,12 @@ window.addEventListener('message', (event) => {
     // You could still send this data to the background script if it's relevant
     // chrome.runtime.sendMessage({ type: "GENERIC_DATA_FROM_PAGE", payload: event.data.payload });
   }
+  else if (event.data.type === "GET_SIPD_TOKEN") {
+  chrome.runtime.sendMessage({ action: "getSipdToken" }, (response) => {
+    window.postMessage(
+      { type: "SIPD_TOKEN_RESPONSE", token: response?.token || null },
+      window.location.origin
+    );
+  });
+}
 });

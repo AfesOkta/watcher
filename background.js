@@ -338,6 +338,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       });
       return true;
   }
+
+  if (request.action === "getSipdToken") {
+    chrome.storage.local.get(
+      ["sipd_auth_https://service.sipd.kemendagri.go.id/auth/auth/login"],
+      (result) => {
+        const authData =
+          result["sipd_auth_https://service.sipd.kemendagri.go.id/auth/auth/login"];
+        if (authData && authData.token) {
+          sendResponse({ token: authData.token });
+        } else {
+          sendResponse({ token: null });
+        }
+      }
+    );
+    return true; // biar async sendResponse tetap jalan
+  }
 });
 
 // Example: Handling specific tab updates (from previous version, keep if needed)

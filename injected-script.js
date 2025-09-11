@@ -8,6 +8,68 @@ const yearToday = new Date().getFullYear();
 // --- Helper Functions to Handle Intercepted Data ---
 let bearerToken = null; // store the bearer token
 
+// Fungsi untuk ambil token dari chrome.storage.local
+function getSipdToken() {
+  return new Promise((resolve) => {
+     window.postMessage({ type: "GET_SIPD_TOKEN" }, window.location.origin);
+
+      function handler(event) {
+        if (event.source !== window) return;
+        if (event.data.type === "SIPD_TOKEN_RESPONSE") {
+          window.removeEventListener("message", handler);
+          resolve(event.data.token || null);
+        }
+      }
+      window.addEventListener("message", handler);
+  });
+}
+
+// Fungsi untuk ambil data STS
+async function fetchSTSData(id_skpd) {
+  const token = await getSipdToken();
+  if (!token) return;
+
+  try {
+    let stsUrl = `https://service.sipd.kemendagri.go.id/penerimaan/strict/sts?page=1&limit=10&jenis=ALL&status=aktif&id_skpd=${id_skpd}`;
+    const response = await fetch(stsUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("📦 Data STS:", data);
+  } catch (err) {
+    console.error("❌ Error fetch STS:", err);
+  }
+}
+
+async function fetchSTBPData(id_skpd) {
+  const token = await getSipdToken();
+  if (!token) return;
+  const cetakUrl = `https://service.sipd.kemendagri.go.id/penerimaan/strict/stbp/cetak/${id_skpd}`;
+  originalFetch(cetakUrl, {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`
+        }
+      })
+  .then(cetakRes => cetakRes.json())
+  .then(cetakData => {
+      console.log(`SIPD Watcher (Injected): Auto-fetch cetak triggered for ID ${id_skpd}`, cetakData);
+      window.postMessage({
+          type: "SIPD_DATA_CETAK_PENERIMAAN",
+          endpoint: cetakUrl,
+          payload: cetakData
+      }, "*");
+  })
+  .catch(err => {
+      console.error(`SIPD Watcher (Injected): Failed to fetch cetak data for ID ${id_skpd}`, err);
+  });
+}
 // Function to handle data from Fetch and post it to the content script
 async function handleFetchResponse(response, url, type) {
   try {
@@ -67,12 +129,24 @@ function handleXHRResponse(xhr, url, type) {
   }
 }
 
+// const originalFetch = window.fetch;
+
 // --- Hooking Fetch ---
 window.fetch = async function(...args) {
   const [resource, options] = args;
   const url = typeof resource === 'string' ? resource : resource.url;
+  const method = options?.method?.toUpperCase() || 'GET';   
 
-  // Perform the original fetch request
+  // ⬅️ Ambil payload (body) jika ada
+  let requestPayload = null;
+  if (options?.body) {
+    try {
+      requestPayload = JSON.parse(options.body);
+    } catch (e) {
+      requestPayload = options.body; // kalau bukan JSON
+    }
+  }
+
   const response = await originalFetch(resource, options);
 
   // Check and handle specific endpoints
@@ -119,35 +193,55 @@ window.fetch = async function(...args) {
     handleFetchResponse(response, url, "SIPD_DATA_JADWAL");
   }
 
-  if (url.includes(`penerimaan/strict/stbp/status`)) {
+  if (method === 'PUT' && url.includes(`penerimaan/strict/stbp/status`)) {
+    console.log("📩 Intercepted request payload:", requestPayload);
     handleFetchResponse(response, url, "SIPD_DATA_OTORISASI_PENERIMAAN");
 
      // Setelah dapat response, cek nilai dan lakukan request cetak jika perlu
-    response.clone().json().then(data => {
-        const id = url.split('/').pop(); // Ambil ID dari URL status
-        if (data === true || data === 1 || data === "true" || data === "1") {
-            const cetakUrl = `https://service.sipd.kemendagri.go.id/penerimaan/strict/stbp/cetak/${id}`;
-                originalFetch(cetakUrl, {
-                      headers: {
-                        'Authorization': `Bearer ${bearerToken}`
-                      }
-                    })
-                .then(cetakRes => cetakRes.json())
-                .then(cetakData => {
-                    console.log(`SIPD Watcher (Injected): Auto-fetch cetak triggered for ID ${id}`, cetakData);
-                    window.postMessage({
-                        type: "SIPD_DATA_CETAK_PENERIMAAN",
-                        endpoint: cetakUrl,
-                        payload: cetakData
-                    }, "*");
-                })
-                .catch(err => {
-                    console.error(`SIPD Watcher (Injected): Failed to fetch cetak data for ID ${id}`, err);
-                });
+    response.clone().json().then(data => {        
+        try {
+          let requestPayload = null;
+          if (this._requestBody) {
+            try {
+              requestPayload = JSON.parse(this._requestBody);
+            } catch (error) {
+              requestPayload = this._requestBody;
+            }
+          }
+          console.log("📩 Intercepted XHR request payload:", requestPayload);
+
+          const id = url.split('/').pop(); // Ambil ID dari URL status
+          const data = JSON.parse(this.responseText);
+          if (requestPayload?.update === "Otorisasi" && (data === true || data === 1 || data === "true" || data === "1")) {
+              fetchSTBPData(id);
+          }
+        } catch (err) {
+            console.warn("SIPD Watcher (Injected): Failed to evaluate status response for cetak trigger", err);
         }
     }).catch(err => {
         console.warn("SIPD Watcher (Injected): Failed to parse status response JSON", err);
     });
+  }
+
+  if (url.includes(`penerimaan/strict/sts`)) {
+    handleFetchResponse(response, url, "SIPD_DATA_CREATE_STS");
+     // Clone supaya bisa dibaca ulang
+    const cloned = response.clone();
+    if (method === 'DELETE') {
+      const id = url.split('/').pop(); // Ambil ID dari URL status
+      console.log("🚀 Response STS terdeteksi DELETE…");
+
+    }else {
+      try {
+        const data = await cloned.json();
+        if (data === true || data?.sts === true) {
+          console.log("🚀 Response STS terdeteksi TRUE, auto-fetch STS endpoint…");
+          fetchSTSData();
+        }
+      } catch (err) {
+        // kalau bukan JSON, biarin aja
+      }
+    }
   }
   return response; // Return the original response to the page
 };
@@ -156,6 +250,8 @@ window.fetch = async function(...args) {
 window.XMLHttpRequest = class extends originalXHR {
   constructor() {
     super();
+    this._requestBody = null;
+
     this.addEventListener('readystatechange', () => {
       // We are interested when the request is done and we have a response
       if (this.readyState === 4) { // DONE
@@ -214,34 +310,59 @@ window.XMLHttpRequest = class extends originalXHR {
           handleXHRResponse(this, url, "SIPD_DATA_OTORISASI_PENERIMAAN");
 
           try {
+            let requestPayload = null;
+            if (this._requestBody) {
+              try {
+                requestPayload = JSON.parse(this._requestBody);
+              } catch (error) {
+                requestPayload = this._requestBody;
+              }
+            }
+            console.log("📩 Intercepted XHR request payload:", requestPayload);
+
             const id = url.split('/').pop();
             const data = JSON.parse(this.responseText);
-            if (data === true || data === 1 || data === "true" || data === "1") {
-                const cetakUrl = `https://service.sipd.kemendagri.go.id/penerimaan/strict/stbp/cetak/${id}`;
-                    originalFetch(cetakUrl, {
-                      headers: {
-                        'Authorization': `Bearer ${bearerToken}`
-                      }
-                    })
-                    .then(cetakRes => cetakRes.json())
-                    .then(cetakData => {
-                        console.log(`SIPD Watcher (Injected): Auto-fetch cetak triggered for ID ${id}`, cetakData);
-                        window.postMessage({
-                            type: "SIPD_DATA_CETAK_PENERIMAAN",
-                            endpoint: cetakUrl,
-                            payload: cetakData
-                        }, "*");
-                    })
-                    .catch(err => {
-                        console.error(`SIPD Watcher (Injected): Failed to fetch cetak data for ID ${id}`, err);
-                    });
+            if (requestPayload?.update === "Otorisasi" && (data === true || data === 1 || data === "true" || data === "1")) {
+                fetchSTBPData(id);
             }
           } catch (err) {
               console.warn("SIPD Watcher (Injected): Failed to evaluate status response for cetak trigger", err);
           }
         }
+
+        // === INTERCEPT STS ===
+        if (url.includes("penerimaan/strict/sts")) {
+          handleXHRResponse(this, url, "SIPD_DATA_CREATE_STS");
+          try {
+            // ambil payload request
+            let requestPayload = null;
+            if (this._requestBody) {
+              try {
+                requestPayload = JSON.parse(this._requestBody);
+              } catch (e) {
+                requestPayload = this._requestBody;
+              }
+            }
+            let id_skpd = requestPayload?.id_skpd;
+            const data = JSON.parse(this.responseText);
+            // kalau STS sukses (true) → fetch list STS terbaru
+            if (data === true || data === "true" || data === 1 || data === "1") {
+              fetchSTSData(id_skpd);
+            }
+          } catch (err) {
+            console.warn("SIPD Watcher: Failed to handle STS", err);
+          }
+        }
       }
     });
+  }
+
+  // hook send() untuk tangkap body
+  send(body) {
+    if (body) {
+      this._requestBody = body;
+    }
+    return super.send(body);
   }
 };
 
