@@ -99,7 +99,7 @@ window.addEventListener('message', (event) => {
     console.log(data);
     const payloadFilter = data.filter(item => item.kode_akun && item.kode_akun.length > 13);
     const parts = event.data.endpoint.split("/");
-    const organisasiId = event.data.payload.nama_skpd; 
+    const organisasiId = event.data.payload.nama_skpd;
     const tahapanId = parts[parts.length - 1];
     console.log("SIPD Watcher (Content): Received data DPA from injected script:", payloadFilter);
     // Send this data to the background script
@@ -107,7 +107,7 @@ window.addEventListener('message', (event) => {
       type: "SIPD_DATA_DPA_CAPTURED",
       payload: payloadFilter,
       tahapan: tahapanId,
-      skpd:organisasiId
+      skpd: organisasiId
     }).then(response => {
       console.log("SIPD Watcher (Content): Background script response:", response);
     }).catch(error => {
@@ -137,6 +137,17 @@ window.addEventListener('message', (event) => {
       console.error("SIPD Watcher (Content): Error sending data Cetak to background script:", error);
     });
   }
+  else if (event.data.type === 'SIPD_DATA_GET_PENYETORAN') {
+    console.log("SIPD Watcher (Content): Received Sts data from injected script:", event.data);
+    chrome.runtime.sendMessage({
+      type: "SIPD_DATA_GET_PENYETORAN_CAPTURED",
+      payload: event.data.payload
+    }).then(response => {
+      console.log("SIPD Watcher (Content): Background script response:", response);
+    }).catch(error => {
+      console.error("SIPD Watcher (Content): Error sending data Sts to background script:", error);
+    });
+  }
   // You can add other message types here if needed
   else if (event.data.type === 'FROM_INJECTED_SCRIPT') {
     console.log("SIPD Watcher (Content): Received generic message from injected script:", event.data.payload);
@@ -144,11 +155,11 @@ window.addEventListener('message', (event) => {
     // chrome.runtime.sendMessage({ type: "GENERIC_DATA_FROM_PAGE", payload: event.data.payload });
   }
   else if (event.data.type === "GET_SIPD_TOKEN") {
-  chrome.runtime.sendMessage({ action: "getSipdToken" }, (response) => {
-    window.postMessage(
-      { type: "SIPD_TOKEN_RESPONSE", token: response?.token || null },
-      window.location.origin
-    );
-  });
-}
+    chrome.runtime.sendMessage({ action: "getSipdToken" }, (response) => {
+      window.postMessage(
+        { type: "SIPD_TOKEN_RESPONSE", token: response?.token || null },
+        window.location.origin
+      );
+    });
+  }
 });

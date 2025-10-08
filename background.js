@@ -11,7 +11,7 @@ chrome.runtime.onInstalled.addListener(() => {
 // Listen for messages from content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log("SIPD Watcher: Message received in background script:", request);
-  
+
   // --- Informasi Basic Auth ---
   const username = "eRevenue";
   const password = "AlHaMdUlIlLaH";
@@ -30,7 +30,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       console.log(`SIPD Watcher (Background): ${endpoint} data saved to local storage.`);
       sendResponse({ status: "success", message: `${endpoint} data saved.` });
     });
-    
+
     // --- Tambahkan logika ini untuk mengirim data login ke API Anda ---
     if (endpoint === "login") {
       const apiEndpoint = "http://prototype.test/api/sipd-token"; // Ganti dengan URL API Anda yang sebenarnya!
@@ -51,21 +51,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         },
         body: JSON.stringify(dataToSend)
       })
-      .then(response => {
-        if (!response.ok) {
-          // Jika respons bukan 2xx OK
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json(); // Atau response.text() tergantung pada respons API Anda
-      })
-      .then(apiResponse => {
-        console.log("SIPD Watcher (Background): Data login berhasil dikirim ke API:", apiResponse);
-        sendResponse({ status: "success", message: "Login data sent to API.", apiResponse: apiResponse });
-      })
-      .catch(error => {
-        console.error("SIPD Watcher (Background): Gagal mengirim data login ke API:", error);
-        sendResponse({ status: "error", message: `Failed to send login data to API: ${error.message}` });
-      });
+        .then(response => {
+          if (!response.ok) {
+            // Jika respons bukan 2xx OK
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json(); // Atau response.text() tergantung pada respons API Anda
+        })
+        .then(apiResponse => {
+          console.log("SIPD Watcher (Background): Data login berhasil dikirim ke API:", apiResponse);
+          sendResponse({ status: "success", message: "Login data sent to API.", apiResponse: apiResponse });
+        })
+        .catch(error => {
+          console.error("SIPD Watcher (Background): Gagal mengirim data login ke API:", error);
+          sendResponse({ status: "error", message: `Failed to send login data to API: ${error.message}` });
+        });
       // Kembalikan true karena sendResponse akan dipanggil secara asinkron
       return true;
     }
@@ -96,21 +96,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       },
       body: JSON.stringify(dataToSend)
     })
-    .then(response => {
-      if (!response.ok) {
-        // Jika respons bukan 2xx OK
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json(); // Atau response.text() tergantung pada respons API Anda
-    })
-    .then(apiResponse => {
-      console.log("SIPD Watcher (Background): Data RKUD berhasil dikirim ke API:", apiResponse);
-      sendResponse({ status: "success", message: "Data RKUD sent to API.", apiResponse: apiResponse });
-    })
-    .catch(error => {
-      console.error("SIPD Watcher (Background): Gagal mengirim data RKUD ke API:", error);
-      sendResponse({ status: "error", message: `Failed to send RKUD data to API: ${error.message}` });
-    });
+      .then(response => {
+        if (!response.ok) {
+          // Jika respons bukan 2xx OK
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(); // Atau response.text() tergantung pada respons API Anda
+      })
+      .then(apiResponse => {
+        console.log("SIPD Watcher (Background): Data RKUD berhasil dikirim ke API:", apiResponse);
+        sendResponse({ status: "success", message: "Data RKUD sent to API.", apiResponse: apiResponse });
+      })
+      .catch(error => {
+        console.error("SIPD Watcher (Background): Gagal mengirim data RKUD ke API:", error);
+        sendResponse({ status: "error", message: `Failed to send RKUD data to API: ${error.message}` });
+      });
     // Kembalikan true karena sendResponse akan dipanggil secara asinkron
     return true;
   } else if (request.type === "SIPD_REFERENSI_REKENING_PENGAJUAN_CAPTURED") {
@@ -132,21 +132,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       },
       body: JSON.stringify(dataToSend)
     })
-    .then(response => {
-      if (!response.ok) {
-        // Jika respons bukan 2xx OK
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json(); // Atau response.text() tergantung pada respons API Anda
-    })
-    .then(apiResponse => {
-      console.log("SIPD Watcher (Background): Data REKENING BANK berhasil dikirim ke API:", apiResponse);
-      sendResponse({ status: "success", message: "Data REKENING BANK sent to API.", apiResponse: apiResponse });
-    })
-    .catch(error => {
-      console.error("SIPD Watcher (Background): Gagal mengirim data REKENING BANK ke API:", error);
-      sendResponse({ status: "error", message: `Failed to send REKENING BANK data to API: ${error.message}` });
-    });
+      .then(response => {
+        if (!response.ok) {
+          // Jika respons bukan 2xx OK
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(); // Atau response.text() tergantung pada respons API Anda
+      })
+      .then(apiResponse => {
+        console.log("SIPD Watcher (Background): Data REKENING BANK berhasil dikirim ke API:", apiResponse);
+        sendResponse({ status: "success", message: "Data REKENING BANK sent to API.", apiResponse: apiResponse });
+      })
+      .catch(error => {
+        console.error("SIPD Watcher (Background): Gagal mengirim data REKENING BANK ke API:", error);
+        sendResponse({ status: "error", message: `Failed to send REKENING BANK data to API: ${error.message}` });
+      });
     // Kembalikan true karena sendResponse akan dipanggil secara asinkron
     return true;
   } else if (request.type === "SIPD_USER_MANAGER_DATA_CAPTURED") {
@@ -168,26 +168,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       },
       body: JSON.stringify(dataToSend)
     })
-    .then(response => {
-      if (!response.ok) {
-        // Jika respons bukan 2xx OK
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json(); // Atau response.text() tergantung pada respons API Anda
-    })
-    .then(apiResponse => {
-      console.log("SIPD Watcher (Background): Data USER berhasil dikirim ke API:", apiResponse);
-      sendResponse({ status: "success", message: "Data USER sent to API.", apiResponse: apiResponse });
-    })
-    .catch(error => {
-      console.error("SIPD Watcher (Background): Gagal mengirim data USER ke API:", error);
-      sendResponse({ status: "error", message: `Failed to send USER data to API: ${error.message}` });
-    });
+      .then(response => {
+        if (!response.ok) {
+          // Jika respons bukan 2xx OK
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(); // Atau response.text() tergantung pada respons API Anda
+      })
+      .then(apiResponse => {
+        console.log("SIPD Watcher (Background): Data USER berhasil dikirim ke API:", apiResponse);
+        sendResponse({ status: "success", message: "Data USER sent to API.", apiResponse: apiResponse });
+      })
+      .catch(error => {
+        console.error("SIPD Watcher (Background): Gagal mengirim data USER ke API:", error);
+        sendResponse({ status: "error", message: `Failed to send USER data to API: ${error.message}` });
+      });
     // Kembalikan true karena sendResponse akan dipanggil secara asinkron
     return true;
   } else if (request.type === "SIPD_DATA_DPA_CAPTURED") {
     const { endpoint, payload, tahapan, skpd } = request;
-    console.log(`SIPD Watcher (Background): Captured ${endpoint} data:`, payload);    
+    console.log(`SIPD Watcher (Background): Captured ${endpoint} data:`, payload);
 
     const apiEndpoint = "http://prototype.test/api/sipd-add-dpa"; // Ganti dengan URL API Anda yang sebenarnya!
     const dataToSend = {
@@ -206,21 +206,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       },
       body: JSON.stringify(dataToSend)
     })
-    .then(response => {
-      if (!response.ok) {
-        // Jika respons bukan 2xx OK
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json(); // Atau response.text() tergantung pada respons API Anda
-    })
-    .then(apiResponse => {
-      console.log("SIPD Watcher (Background): Data DPA berhasil dikirim ke API:", apiResponse);
-      sendResponse({ status: "success", message: "Data DPA sent to API.", apiResponse: apiResponse });
-    })
-    .catch(error => {
-      console.error("SIPD Watcher (Background): Gagal mengirim data DPA ke API:", error);
-      sendResponse({ status: "error", message: `Failed to send DPA data to API: ${error.message}` });
-    });
+      .then(response => {
+        if (!response.ok) {
+          // Jika respons bukan 2xx OK
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(); // Atau response.text() tergantung pada respons API Anda
+      })
+      .then(apiResponse => {
+        console.log("SIPD Watcher (Background): Data DPA berhasil dikirim ke API:", apiResponse);
+        sendResponse({ status: "success", message: "Data DPA sent to API.", apiResponse: apiResponse });
+      })
+      .catch(error => {
+        console.error("SIPD Watcher (Background): Gagal mengirim data DPA ke API:", error);
+        sendResponse({ status: "error", message: `Failed to send DPA data to API: ${error.message}` });
+      });
     // Kembalikan true karena sendResponse akan dipanggil secara asinkron
     return true;
   } else if (request.type === "SIPD_DATA_SKPD_CAPTURED") {
@@ -242,21 +242,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       },
       body: JSON.stringify(dataToSend)
     })
-    .then(response => {
-      if (!response.ok) {
-        // Jika respons bukan 2xx OK
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json(); // Atau response.text() tergantung pada respons API Anda
-    })
-    .then(apiResponse => {
-      console.log("SIPD Watcher (Background): Data SKPD berhasil dikirim ke API:", apiResponse);
-      sendResponse({ status: "success", message: "Data SKPD sent to API.", apiResponse: apiResponse });
-    })
-    .catch(error => {
-      console.error("SIPD Watcher (Background): Gagal mengirim data SKPD ke API:", error);
-      sendResponse({ status: "error", message: `Failed to send SKPD data to API: ${error.message}` });
-    });
+      .then(response => {
+        if (!response.ok) {
+          // Jika respons bukan 2xx OK
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(); // Atau response.text() tergantung pada respons API Anda
+      })
+      .then(apiResponse => {
+        console.log("SIPD Watcher (Background): Data SKPD berhasil dikirim ke API:", apiResponse);
+        sendResponse({ status: "success", message: "Data SKPD sent to API.", apiResponse: apiResponse });
+      })
+      .catch(error => {
+        console.error("SIPD Watcher (Background): Gagal mengirim data SKPD ke API:", error);
+        sendResponse({ status: "error", message: `Failed to send SKPD data to API: ${error.message}` });
+      });
     // Kembalikan true karena sendResponse akan dipanggil secara asinkron
     return true;
   } else if (request.type === "SIPD_DATA_JADWAL_CAPTURED") {
@@ -278,26 +278,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       },
       body: JSON.stringify(dataToSend)
     })
-    .then(response => {
-      if (!response.ok) {
-        // Jika respons bukan 2xx OK
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json(); // Atau response.text() tergantung pada respons API Anda
-    })
-    .then(apiResponse => {
-      console.log("SIPD Watcher (Background): Data Jadwal berhasil dikirim ke API:", apiResponse);
-      sendResponse({ status: "success", message: "Data Jadwal sent to API.", apiResponse: apiResponse });
-    })
-    .catch(error => {
-      console.error("SIPD Watcher (Background): Gagal mengirim data Jadwal ke API:", error);
-      sendResponse({ status: "error", message: `Failed to send Jadwal data to API: ${error.message}` });
-    });
+      .then(response => {
+        if (!response.ok) {
+          // Jika respons bukan 2xx OK
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(); // Atau response.text() tergantung pada respons API Anda
+      })
+      .then(apiResponse => {
+        console.log("SIPD Watcher (Background): Data Jadwal berhasil dikirim ke API:", apiResponse);
+        sendResponse({ status: "success", message: "Data Jadwal sent to API.", apiResponse: apiResponse });
+      })
+      .catch(error => {
+        console.error("SIPD Watcher (Background): Gagal mengirim data Jadwal ke API:", error);
+        sendResponse({ status: "error", message: `Failed to send Jadwal data to API: ${error.message}` });
+      });
     // Kembalikan true karena sendResponse akan dipanggil secara asinkron
     return true;
-  } else if (request.type === "SIPD_DATA_CETAK_PENERIMAAN_CAPTURED`") {
+  } else if (request.type === "SIPD_DATA_CETAK_PENERIMAAN_CAPTURED") {
     const { endpoint, payload } = request;
-    console.log(`SIPD Watcher (Background): Captured ${endpoint} data:`, payload); 
+    console.log(`SIPD Watcher (Background): Captured ${endpoint} data:`, payload);
 
     const apiEndpoint = "http://prototype.test/api/sipd-add-stbp"; // Ganti dengan URL API Anda yang sebenarnya!
     const dataToSend = {
@@ -314,6 +314,61 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       capturedAt: new Date().toISOString()
     };
 
+    fetch(apiEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // Tambahkan header otorisasi jika API Anda membutuhkannya
+        "Authorization": `Basic ${basicAuthToken}`
+      },
+      body: JSON.stringify(dataToSend)
+    })
+      .then(response => {
+        if (!response.ok) {
+          // Jika respons bukan 2xx OK
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(); // Atau response.text() tergantung pada respons API Anda
+      })
+      .then(apiResponse => {
+        console.log("SIPD Watcher (Background): Data STBP berhasil dikirim ke API:", apiResponse);
+        sendResponse({ status: "success", message: "Data STBP sent to API.", apiResponse: apiResponse });
+      })
+      .catch(error => {
+        console.error("SIPD Watcher (Background): Gagal mengirim data STBP ke API:", error);
+        sendResponse({ status: "error", message: `Failed to send STBP data to API: ${error.message}` });
+      });
+    // Kembalikan true karena sendResponse akan dipanggil secara asinkron
+    return true;
+
+  } else if (request.type === "SIPD_DATA_GET_PENYETORAN_CAPTURED") {
+    const { endpoint, payload } = request;
+    console.log(`SIPD Watcher (Background): Captured ${endpoint} data:`, payload);
+
+    const apiEndpoint = "http://prototype.test/api/sipd-add-sts";
+
+    fetch(apiEndpoint, {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${basicAuthToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sts_list: payload, // kirim seluruh array sekaligus
+        capturedAt: new Date().toISOString()
+      })
+    })
+      .then(res => res.json())
+      .then(result => {
+        console.log("✅ SIPD Watcher (Background): Data successfully sent to API", result);
+        sendResponse({ success: true, result });
+      })
+      .catch(err => {
+        console.error("❌ Error sending STS data to API:", err);
+        sendResponse({ success: false, error: err });
+      });
+
+    return true; // penting agar sendResponse tetap hidup async
   } else if (request.type === "GET_WATCHER_STATUS") {
     chrome.storage.sync.get('watcherEnabled', (data) => {
       sendResponse({ status: data.watcherEnabled });
@@ -329,14 +384,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true;
   } else if (request.type === "GET_SAVED_AUTH_DATA") {
-      // Example of how a popup or other script could request the saved data
-      chrome.storage.local.get(['sipd_auth_pre-login', 'sipd_auth_login'], (data) => {
-          sendResponse({
-              preLoginData: data['sipd_auth_pre-login'],
-              loginData: data['sipd_auth_login']
-          });
+    // Example of how a popup or other script could request the saved data
+    chrome.storage.local.get(['sipd_auth_pre-login', 'sipd_auth_login'], (data) => {
+      sendResponse({
+        preLoginData: data['sipd_auth_pre-login'],
+        loginData: data['sipd_auth_login']
       });
-      return true;
+    });
+    return true;
   }
 
   if (request.action === "getSipdToken") {
@@ -361,7 +416,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url && tab.url.includes('sipd.go.id')) {
     console.log(`SIPD Watcher: SIPD tab updated: ${tab.url}`);
     chrome.tabs.sendMessage(tabId, { type: "SIPD_PAGE_LOADED" }).catch(error => {
-        console.warn("SIPD Watcher: Error sending message to content script:", error);
+      console.warn("SIPD Watcher: Error sending message to content script:", error);
     });
   }
 });
